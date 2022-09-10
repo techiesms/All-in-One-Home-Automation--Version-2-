@@ -21,7 +21,15 @@
 #include <DHT.h>          // https://github.com/adafruit/DHT-sensor-library (1.4.3)
 #include <SimpleTimer.h>  // https://github.com/kiryanenko/SimpleTimer (1.0.0)
 #include <AceButton.h>    // https://github.com/bxparks/AceButton (1.9.2)
+#include <Preferences.h>
+Preferences pref;
 
+// Relay State
+bool toggleState_1 = LOW; //Define integer to remember the toggle state for relay 1
+bool toggleState_2 = LOW; //Define integer to remember the toggle state for relay 2
+bool toggleState_3 = LOW; //Define integer to remember the toggle state for relay 3
+bool toggleState_4 = LOW; //Define integer to remember the toggle state for relay 4
+int FanState      = 0 ;
 
 using namespace ace_button;
 
@@ -243,6 +251,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       if (DEBUG_SW)if (DEBUG_SW)Serial.printf("Received value = %s for %s - %s\n", val.val.b ? "true" : "false", device_name, param_name);
       switch_state_ch1 = val.val.b;
       (switch_state_ch1 == false) ? digitalWrite(relay1, LOW) : digitalWrite(relay1, HIGH);
+      pref.putBool("Relay1", switch_state_ch1);
       param->updateAndReport(val);
     }
 
@@ -254,6 +263,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       if (DEBUG_SW)if (DEBUG_SW)Serial.printf("Received value = %s for %s - %s\n", val.val.b ? "true" : "false", device_name, param_name);
       switch_state_ch2 = val.val.b;
       (switch_state_ch2 == false) ? digitalWrite(relay2, LOW) : digitalWrite(relay2, HIGH);
+      pref.putBool("Relay2", switch_state_ch2);
       param->updateAndReport(val);
     }
 
@@ -265,6 +275,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       if (DEBUG_SW)if (DEBUG_SW)Serial.printf("Received value = %s for %s - %s\n", val.val.b ? "true" : "false", device_name, param_name);
       switch_state_ch3 = val.val.b;
       (switch_state_ch3 == false) ? digitalWrite(relay3, LOW) : digitalWrite(relay3, HIGH);
+      pref.putBool("Relay3", switch_state_ch3);
       param->updateAndReport(val);
     }
 
@@ -277,6 +288,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       if (DEBUG_SW)if (DEBUG_SW)Serial.printf("Received value = %s for %s - %s\n", val.val.b ? "true" : "false", device_name, param_name);
       switch_state_ch4 = val.val.b;
       (switch_state_ch4 == false) ? digitalWrite(relay4, LOW) : digitalWrite(relay4, HIGH);
+      pref.putBool("Relay4", switch_state_ch4);
       param->updateAndReport(val);
     }
 
@@ -308,6 +320,49 @@ void sendSensor()
   humidity.updateAndReportParam("Temperature", humidity_value);
 }
 
+
+// This function will recall the last state
+void getRelayState()
+{
+  toggleState_1 = pref.getBool("Relay1", 0);
+  Serial.print("Last State Relay1 - "); Serial.println(toggleState_1);
+  digitalWrite(relay1, toggleState_1);
+  my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, toggleState_1);
+  delay(200);
+  toggleState_2 = pref.getBool("Relay2", 0);
+  Serial.print("Last State Relay2- "); Serial.println(toggleState_2);
+  digitalWrite(relay2, toggleState_2);
+  my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, toggleState_2);
+  delay(200);
+  toggleState_3 = pref.getBool("Relay3", 0);
+  Serial.print("Last State Relay3- "); Serial.println(toggleState_3);
+  digitalWrite(relay3, toggleState_3);
+  my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, toggleState_3);
+  delay(200);
+  toggleState_4 = pref.getBool("Relay4", 0);
+  Serial.print("Last State Relay4- "); Serial.println(toggleState_4);
+  digitalWrite(relay4, toggleState_4);
+  my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, toggleState_4);
+  delay(200);
+  FanState = pref.getInt("Fan", 0);
+  Serial.print("Last State Fan- "); Serial.println(FanState);
+
+  if (FanState == 0)
+    speed_0();
+  else if (FanState == 1)
+    speed_1();
+  else if (FanState == 2)
+    speed_2();
+  else if (FanState == 3)
+    speed_3();
+  else if (FanState == 4)
+    speed_4();
+  else
+  {}
+  delay(200);
+
+}
+
 void ir_remote() {
   if (DEBUG_SW)Serial.println("Inside IR REMOTE");
   if (irrecv.decode(&results)) {
@@ -318,24 +373,28 @@ void ir_remote() {
         digitalWrite(relay1, switch_state_ch1);
         if (DEBUG_SW)Serial.println("RELAY1 ON");
         my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch1);
+        pref.putBool("Relay1", switch_state_ch1);
         delay(100);
         break;
       case IR_Relay2:
         switch_state_ch2 = !switch_state_ch2;
         digitalWrite(relay2, switch_state_ch2);
         my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch2);
+        pref.putBool("Relay2", switch_state_ch2);
         delay(100);
         break;
       case IR_Relay3:
         switch_state_ch3 = !switch_state_ch3;
         digitalWrite(relay3, switch_state_ch3);
         my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch3);
+        pref.putBool("Relay3", switch_state_ch3);
         delay(100);
         break;
       case IR_Relay4:
         switch_state_ch4 = !switch_state_ch4;
         digitalWrite(relay4, switch_state_ch4);
         my_switch4.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch4);
+        pref.putBool("Relay4", switch_state_ch4);
         delay(100);
         break;
       case IR_Relay_All_Off:
@@ -423,18 +482,22 @@ void All_Lights_Off()
   switch_state_ch1 = 0;
   digitalWrite(relay1, LOW);
   my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch1);
+  pref.putBool("Relay1", switch_state_ch1);
 
   switch_state_ch2 = 0;
   digitalWrite(relay2, LOW);
   my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch2);
+  pref.putBool("Relay2", switch_state_ch2);
 
   switch_state_ch3 = 0;
   digitalWrite(relay3, LOW);
   my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch3);
+  pref.putBool("Relay3", switch_state_ch3);
 
   switch_state_ch4 = 0;
   digitalWrite(relay4, LOW);
   my_switch4.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch4);
+  pref.putBool("Relay4", switch_state_ch4);
 
 }
 
@@ -443,18 +506,22 @@ void All_Lights_On()
   switch_state_ch1 = 1;
   digitalWrite(relay1, HIGH);
   my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch1);
+  pref.putBool("Relay1", switch_state_ch1);
 
   switch_state_ch2 = 1;
   digitalWrite(relay2, HIGH);
   my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch2);
+  pref.putBool("Relay2", switch_state_ch2);
 
   switch_state_ch3 = 1;
   digitalWrite(relay3, HIGH);
   my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch3);
+  pref.putBool("Relay3", switch_state_ch3);
 
   switch_state_ch4 = 1;
   digitalWrite(relay4, HIGH);
   my_switch4.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch4);
+  pref.putBool("Relay4", switch_state_ch4);
 
 }
 
@@ -462,7 +529,7 @@ void setup()
 {
 
   if (DEBUG_SW)Serial.begin(115200);
-
+  pref.begin("Relay_State", false);
   // Set the Relays GPIOs as output mode
   pinMode(relay1, OUTPUT);
   pinMode(relay2, OUTPUT);
@@ -574,10 +641,15 @@ void setup()
   WiFiProv.beginProvision(WIFI_PROV_SCHEME_SOFTAP, WIFI_PROV_SCHEME_HANDLER_NONE, WIFI_PROV_SECURITY_1, pop, service_name);
 #endif
 
+
+  getRelayState(); // Get the last state of Relays
+
   my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, false);
   my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, false);
   my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, false);
   my_switch4.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, false);
+
+
 }
 
 void loop()
@@ -636,12 +708,14 @@ void button1Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
       switch_state_ch1 = true;
       my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch1);
       digitalWrite(relay1, HIGH);
+      pref.putBool("Relay1", switch_state_ch1);
       break;
     case AceButton::kEventReleased:
       if (DEBUG_SW)Serial.println("kEventReleased");
       switch_state_ch1 = false;
       my_switch1.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch1);
       digitalWrite(relay1, LOW);
+      pref.putBool("Relay1", switch_state_ch1);
       break;
   }
 }
@@ -654,12 +728,14 @@ void button2Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
       switch_state_ch2 = true;
       my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch2);
       digitalWrite(relay2, HIGH);
+      pref.putBool("Relay2", switch_state_ch2);
       break;
     case AceButton::kEventReleased:
       if (DEBUG_SW)Serial.println("kEventReleased");
       switch_state_ch2 = false;
       my_switch2.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch2);
       digitalWrite(relay2, LOW);
+      pref.putBool("Relay2", switch_state_ch2);
       break;
   }
 }
@@ -672,12 +748,14 @@ void button3Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
       switch_state_ch3 = true;
       my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch3);
       digitalWrite(relay3, HIGH);
+      pref.putBool("Relay3", switch_state_ch3);
       break;
     case AceButton::kEventReleased:
       if (DEBUG_SW)Serial.println("kEventReleased");
       switch_state_ch3 = false;
       my_switch3.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch3);
       digitalWrite(relay3, LOW);
+      pref.putBool("Relay3", switch_state_ch3);
       break;
   }
 }
@@ -690,12 +768,14 @@ void button4Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
       switch_state_ch4 = true;
       my_switch4.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch4);
       digitalWrite(relay4, HIGH);
+      pref.putBool("Relay4", switch_state_ch4);
       break;
     case AceButton::kEventReleased:
       if (DEBUG_SW)Serial.println("kEventReleased");
       switch_state_ch4 = false;
       my_switch4.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, switch_state_ch4);
       digitalWrite(relay4, LOW);
+      pref.putBool("Relay4", switch_state_ch4);
       break;
   }
 }
@@ -751,6 +831,7 @@ void speed_0()
   digitalWrite(Speed1, LOW);
   digitalWrite(Speed2, LOW);
   digitalWrite(Speed4, LOW);
+  pref.putInt("Fan", curr_speed);
 
 }
 
@@ -767,6 +848,7 @@ void speed_1()
   digitalWrite(Speed4, LOW);
   delay(1000);
   digitalWrite(Speed1, HIGH);
+  pref.putInt("Fan", curr_speed);
 }
 
 void speed_2()
@@ -782,6 +864,7 @@ void speed_2()
   digitalWrite(Speed4, LOW);
   delay(1000);
   digitalWrite(Speed2, HIGH);
+  pref.putInt("Fan", curr_speed);
 }
 
 void speed_3()
@@ -798,6 +881,7 @@ void speed_3()
   delay(1000);
   digitalWrite(Speed1, HIGH);
   digitalWrite(Speed2, HIGH);
+  pref.putInt("Fan", curr_speed);
 
 }
 
@@ -814,6 +898,7 @@ void speed_4()
   digitalWrite(Speed4, LOW);
   delay(1000);
   digitalWrite(Speed4, HIGH);
+  pref.putInt("Fan", curr_speed);
 }
 
 
