@@ -586,10 +586,10 @@ void setup()
 
   //Custom Fan device
   my_fan.addCb(write_callback);
-  Param level_param("My_Speed", "custom.param.level", value(0), PROP_FLAG_READ | PROP_FLAG_WRITE);
-  level_param.addBounds(value(0), value(4), value(1));
-  level_param.addUIType(ESP_RMAKER_UI_SLIDER);
-  my_fan.addParam(level_param);
+  Param speed("My_Speed",ESP_RMAKER_PARAM_RANGE , value(0), PROP_FLAG_READ | PROP_FLAG_WRITE);
+  speed.addBounds(value(0), value(4), value(1));
+  speed.addUIType(ESP_RMAKER_UI_SLIDER);
+  my_fan.addParam(speed);
   my_node.addDevice(my_fan);
   my_fan.updateAndReportParam("My_Speed", 0);
   my_fan.updateAndReportParam(ESP_RMAKER_DEF_POWER_NAME, fan_power);
