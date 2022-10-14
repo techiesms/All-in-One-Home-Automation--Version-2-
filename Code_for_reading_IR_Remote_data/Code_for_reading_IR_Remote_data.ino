@@ -1,17 +1,7 @@
- /**********************************************************************************
- *  TITLE: Get the Hex code from any IR remote.
- *  Click on the following links to learn more. 
- *  YouTube Video: https://youtu.be/7knQaSuEgsU
- *  Related Blog : https://iotcircuithub.com/arduino-projects/
- *  by Tech StudyCell
- * 
- *  Download the Libraries:
- *  IRremote Library 3.6.1: https://github.com/Arduino-IRremote/Arduino-IRremote
- **********************************************************************************/
 
 #include <IRremote.h>
  
-int IR_RECV_PIN = 17;  //D35 Update the pin as per circuit
+int IR_RECV_PIN = 17; 
  
 IRrecv irrecv(IR_RECV_PIN);
 decode_results results;
