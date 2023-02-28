@@ -620,7 +620,7 @@ void setup()
   my_node.addDevice(humidity);
 
 
-  Timer.setInterval(2000);
+  Timer.setInterval(30000);
 
   //This is optional
   RMaker.enableOTA(OTA_USING_PARAMS);
